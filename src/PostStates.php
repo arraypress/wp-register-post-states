@@ -210,4 +210,5 @@ class PostStates {
 
 		return $instance;
 	}
+
 }
