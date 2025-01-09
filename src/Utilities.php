@@ -6,62 +6,69 @@
  * @copyright   Copyright (c) 2024, ArrayPress Limited
  * @license     GPL2+
  * @version     1.0.0
- * @author      David Sherlock
  */
 
 declare( strict_types=1 );
 
 use ArrayPress\WP\Register\PostStates;
 
-if ( ! function_exists( __NAMESPACE__ . '\\register_post_states' ) ):
+if ( ! function_exists( 'register_post_states' ) ):
 	/**
-	 * Helper function to register post states.
+	 * Register multiple post states
 	 *
 	 * Example usage:
 	 * ```php
-	 * $options_map = [
-	 *     'landing_page'  => __('Landing Page', 'text-domain'),
-	 *     'featured_post' => __('Featured Post', 'text-domain'),
+	 * $states = [
+	 *     'page_on_front'  => __( 'Front Page', 'my-plugin' ),
+	 *     'page_for_posts' => __( 'Posts Page', 'my-plugin' )
 	 * ];
 	 *
-	 * $result = register_post_states($options_map);
-	 * if (is_wp_error($result)) {
-	 *     error_log($result->get_error_message());
-	 * }
+	 * register_post_states( $states );
 	 * ```
 	 *
-	 * @param array       $options_map   Associative array mapping option keys to labels.
-	 * @param string|null $option_getter Function to retrieve option values, defaults to 'get_option'.
+	 * @param array  $states        Array of post states (key => label)
+	 * @param string $option_getter Optional custom option getter function name
 	 *
-	 * @return PostStates|WP_Error PostStates instance on success, WP_Error on failure.
-	 * @since 1.0.0
-	 *
+	 * @return PostStates|WP_Error PostStates instance or WP_Error on failure
 	 */
-	function register_post_states( array $options_map, ?string $option_getter = null ) {
-		try {
-			return PostStates::register( $options_map, $option_getter );
-		} catch ( Exception $e ) {
-			return new WP_Error(
-				'post_states_registration_failed',
-				sprintf(
-				/* translators: %s: Error message */
-					__( 'Failed to register post states: %s', 'arraypress' ),
-					$e->getMessage()
-				)
-			);
+	function register_post_states( array $states, string $option_getter = 'get_option' ) {
+		$manager = new PostStates();
+		$result  = $manager->register( $states, $option_getter );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
 		}
+
+		return $manager;
 	}
 endif;
 
-if ( ! function_exists( __NAMESPACE__ . '\\post_states' ) ):
+if ( ! function_exists( 'add_post_state' ) ):
 	/**
-	 * Helper function to get the PostStates instance.
+	 * Add a single post state
 	 *
-	 * @return PostStates
-	 * @since 1.0.0
+	 * Example usage:
+	 * ```php
+	 * add_post_state(
+	 *     'privacy_page',
+	 *     __( 'Privacy Policy', 'my-plugin' )
+	 * );
+	 * ```
 	 *
+	 * @param string $key           Option key
+	 * @param string $label         Display label
+	 * @param string $option_getter Optional custom option getter function name
+	 *
+	 * @return PostStates|WP_Error PostStates instance or WP_Error on failure
 	 */
-	function post_states(): PostStates {
-		return PostStates::instance();
+	function add_post_state( string $key, string $label, string $option_getter = 'get_option' ) {
+		$manager = new PostStates();
+		$result  = $manager->add_state( $key, $label, $option_getter );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return $manager;
 	}
 endif;
